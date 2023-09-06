@@ -1,9 +1,14 @@
-import ReHome from "../components/ReHome";
+import IndiaWeather from "../components/IndiaWeather";
+import SketchOnMap from "../components/SketchOnMap";
 
 const dashboardRoutes = [
   {
     path: "/",
-    component: <ReHome />,
+    component: <IndiaWeather />,
+  },
+  {
+    path: "/sketch",
+    component: <SketchOnMap />,
   },
 ];
 

@@ -4,7 +4,7 @@ import { cityNames } from "../constant/Const";
 import { geocode } from "../utils/utils";
 import MyMap from "./MyMap";
 
-export default function ReHome() {
+export default function IndiaWeather() {
   const [weatherData, setWeatherData] = useState<any>([]);
   const apiKey = process.env.REACT_APP_MAP_API_KEY || "";
   const featchAllCityWeather = async () => {
