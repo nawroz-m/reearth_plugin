@@ -1,0 +1,7 @@
+id: test-plugin
+name: Test plugin
+version: 1.0.0
+extensions:
+  - id: App
+    type: widget
+    name: Test

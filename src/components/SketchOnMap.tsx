@@ -128,7 +128,11 @@ const SketchOnMap = () => {
     drawingManagerRef.current = drawingManager;
   };
 
-  const onOverlayComplete = ($overlayEvent: any) => {
+  const onOverlayComplete = async ($overlayEvent: any) => {
+    const existingData = await [...polygons];
+    console.log({ existingData });
+
+    console.log({ $overlayEvent });
     const geoJsonArr: any = [];
     drawingManagerRef.current?.setDrawingMode(null);
     if ($overlayEvent.type === window.google.maps.drawing.OverlayType.POLYGON) {
@@ -145,10 +149,9 @@ const SketchOnMap = () => {
       const startGeoJsonPoint = geoJsonArr[0];
       geoJsonArr.push(startGeoJsonPoint);
       newPolygon.push(startPoint);
-      $overlayEvent.overlay?.setMap(null);
+      // $overlayEvent.overlay?.setMap(null);
 
       setPolygons([...polygons, newPolygon]);
-
       const GeoJson: FeatureCollection = {
         type: "FeatureCollection",
         features: [
@@ -167,10 +170,43 @@ const SketchOnMap = () => {
 
       setGeoJson(geoJsonShallowAdd);
     }
+    if (
+      $overlayEvent.type === window.google.maps.drawing.OverlayType.POLYLINE
+    ) {
+      const newPoyline = $overlayEvent.overlay
+        .getPath()
+        .getArray()
+        .map((latLng: any) => {
+          geoJsonArr.push([latLng.lat(), latLng.lng()]);
+          return { lat: latLng.lat(), lng: latLng.lng() };
+        });
+
+      console.log({ newPoyline });
+
+      // $overlayEvent.overlay?.setMap(null);
+
+      setPolygons([existingData, newPoyline]);
+      // const GeoJson: FeatureCollection = {
+      //   type: "FeatureCollection",
+      //   features: [
+      //     {
+      //       type: "Feature",
+      //       properties: {},
+      //       geometry: {
+      //         type: "Polygon",
+      //         coordinates: [geoJsonArr],
+      //       },
+      //     },
+      //   ],
+      // };
+
+      // const geoJsonShallowAdd = [...geoJson, GeoJson];
+
+      // setGeoJson(geoJsonShallowAdd);
+    }
   };
 
   const onEditPolygon = (index: any): void => {
-    console.log({ index });
     const polygonRef = polygonRefs.current;
     if (polygonRef instanceof google.maps.Polygon) {
       if (polygonRef) {
