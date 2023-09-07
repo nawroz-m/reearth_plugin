@@ -6,6 +6,7 @@ const dashboardRoutes = [
     path: "/",
     component: <IndiaWeather />,
   },
+
   {
     path: "/sketch",
     component: <SketchOnMap />,
