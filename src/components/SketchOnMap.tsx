@@ -17,39 +17,37 @@ const defaultCenter = {
 
 const clearAllBtnStl: React.CSSProperties = {
   cursor: "pointer",
-  // backgroundImage: `url(rainy.png)`,
-
-  height: "24px",
   width: "24px",
-  marginTop: "5px",
-  backgroundColor: "#fff",
+  marginTop: "2px",
+  backgroundColor: "white",
   position: "absolute",
   top: "2px",
-  left: "55%",
+  left: "57.65%",
   zIndex: 99999,
-  color: "white",
-  minWidth: "80px",
-
+  color: "#9d9d9d",
+  minWidth: "75px",
+  paddingLeft: "4px",
+  paddingTop: "2px",
+  paddingBottom: "4px",
   background: "black",
-  // border: "1px solid red",
+  borderRadius: "3px",
 };
 const exportDataBtnStl: React.CSSProperties = {
   cursor: "pointer",
-  // backgroundImage: `url(rainy.png)`,
-
-  height: "24px",
   width: "24px",
-  marginTop: "5px",
-  backgroundColor: "#fff",
+  marginTop: "2px",
+  backgroundColor: "white",
   position: "absolute",
   top: "2px",
-  left: "61%",
+  left: "63.5%",
   zIndex: 99999,
-  color: "white",
-  minWidth: "80px",
-
+  color: "#9d9d9d",
+  minWidth: "60px",
+  paddingLeft: "4px",
+  paddingTop: "2px",
+  paddingBottom: "4px",
   background: "black",
-  // border: "1px solid red",
+  borderRadius: "3px",
 };
 
 const polygonOptions = {
@@ -60,12 +58,6 @@ const polygonOptions = {
   draggable: false,
   editable: true,
 };
-// const controlOptions = {
-//   position: window.google?.maps?.ControlPosition?.TOP_CENTER,
-//   drawingModes: [
-//     window.google?.maps?.drawing?.OverlayType?.POLYGON,
-//   ] as google.maps.drawing.OverlayType[],
-// };
 
 const libraries: Library[] = ["places", "drawing"];
 
@@ -129,10 +121,6 @@ const SketchOnMap = () => {
   };
 
   const onOverlayComplete = async ($overlayEvent: any) => {
-    const existingData = await [...polygons];
-    console.log({ existingData });
-
-    console.log({ $overlayEvent });
     const geoJsonArr: any = [];
     drawingManagerRef.current?.setDrawingMode(null);
     if ($overlayEvent.type === window.google.maps.drawing.OverlayType.POLYGON) {
@@ -181,28 +169,26 @@ const SketchOnMap = () => {
           return { lat: latLng.lat(), lng: latLng.lng() };
         });
 
-      console.log({ newPoyline });
+      $overlayEvent.overlay?.setMap(null);
 
-      // $overlayEvent.overlay?.setMap(null);
+      setPolygons([newPoyline]);
+      const GeoJson: FeatureCollection = {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            properties: {},
+            geometry: {
+              type: "Polygon",
+              coordinates: [geoJsonArr],
+            },
+          },
+        ],
+      };
 
-      setPolygons([existingData, newPoyline]);
-      // const GeoJson: FeatureCollection = {
-      //   type: "FeatureCollection",
-      //   features: [
-      //     {
-      //       type: "Feature",
-      //       properties: {},
-      //       geometry: {
-      //         type: "Polygon",
-      //         coordinates: [geoJsonArr],
-      //       },
-      //     },
-      //   ],
-      // };
+      const geoJsonShallowAdd = [...geoJson, GeoJson];
 
-      // const geoJsonShallowAdd = [...geoJson, GeoJson];
-
-      // setGeoJson(geoJsonShallowAdd);
+      setGeoJson(geoJsonShallowAdd);
     }
   };
 
@@ -243,13 +229,46 @@ const SketchOnMap = () => {
         setGeoJson(geoJsonShallowAdd);
       }
     }
+    if (polygonRef instanceof google.maps.Polyline) {
+      if (polygonRef) {
+        const coordinates = polygonRef.getPath();
+        const arrays = coordinates.getArray();
+        const geoJsonArr: any = [];
+        const finallCoordinates = arrays.map((latLng) => {
+          geoJsonArr.push([latLng.lat(), latLng.lng()]);
+          return {
+            lat: latLng.lat(),
+            lng: latLng.lng(),
+          };
+        });
+
+        const allPolygons = [...polygons];
+        allPolygons[index] = finallCoordinates;
+
+        setPolygons(allPolygons);
+        const GeoJson: FeatureCollection = {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              properties: {},
+              geometry: {
+                type: "Polygon",
+                coordinates: [geoJsonArr],
+              },
+            },
+          ],
+        };
+        const geoJsonShallowAdd = [...geoJson];
+        geoJsonShallowAdd[index] = GeoJson;
+        setGeoJson(geoJsonShallowAdd);
+      }
+    }
   };
 
   const onDeleteDrawing = () => {
-    const allPolygons = [...polygons]; // Create a copy of the polygons array
-
-    allPolygons[0].pop(); // Remove the last path from the first polygon
-    setPolygons(allPolygons); // Update the state with the updated polygons array
+    setPolygons([]);
+    setGeoJson([]);
   };
 
   const exportData = () => {
@@ -263,8 +282,6 @@ const SketchOnMap = () => {
     link.click();
   };
 
-  console.log({ polygons });
-  console.log({ geoJson });
   return isLoaded ? (
     <div className="map-container" style={{ position: "relative" }}>
       {drawingManagerRef.current && (
@@ -283,6 +300,7 @@ const SketchOnMap = () => {
           </div>
         </>
       )}
+
       <GoogleMap
         mapContainerClassName="google_map_container"
         zoom={15}
